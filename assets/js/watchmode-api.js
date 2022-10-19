@@ -29,42 +29,23 @@ function searchTitle(event) {
 }
 
 
-// function getStreamingServices(e) {
-//   const titleInfo = titleResults.filter(title => title.name === e.target.textContent)
-//   titles.textContent = ''
-//   fetch(`https://api.watchmode.com/v1/title/${titleInfo[0].id}/sources/?apiKey=${apiKey}`)
-//   .then(res => res.json())
-//   .then(data => {
-//     if(data.length === 0) {
-//       const h2 = document.createElement('h2');
-//       h2.textContent = 'No streaming services available.';
-//       titles.append(h2);
-//     }
-//     const dataUniq = [...new Map(data.map(v => [v.name, v])).values()]
-//     dataUniq.forEach(service => {
-//       const h2 = document.createElement('h2');
-//       const url = document.createElement('h3')
-//       h2.textContent = service.name;
-//       url.textContent = service.web_url
-//       titles.append(h2);
-//       titles.append(url);
-//     })
-//   })
-//   .catch(err => console.log(`err: ${err}`))
-// }
-
 
 function renderSearch(titleResults) {
+
   titleResults.forEach(title => {
       const article = document.createElement('article');
       const header = document.createElement('header');
       const titleHeader = document.createElement('h2');
       const headerLink = document.createElement('a');
       headerLink.textContent = title.name;
-      headerLink.href = '#';
+      headerLink.dataset.name = title.name;
+      headerLink.href = '#main';
+      headerLink.addEventListener('click', getStreamingServices)
       const imageLink = document.createElement('a');
       imageLink.classList.add('image', 'fit');
-      imageLink.href = '#';
+      imageLink.href = '#main';
+      imageLink.dataset.name = title.name
+      imageLink.addEventListener('click', getStreamingServices)
       const titleImage = document.createElement('img');
       titleImage.src = title.image_url ? title.image_url : '';
       titles.append(article);
@@ -74,4 +55,33 @@ function renderSearch(titleResults) {
       article.append(imageLink);
       imageLink.append(titleImage);
   })
+
+  function getStreamingServices(e) {
+    const titleInfo = titleResults.filter(title => title.name === e.currentTarget.dataset.name)
+    titles.textContent = '';
+    console.log(titleInfo);
+    fetch(`https://api.watchmode.com/v1/title/${titleInfo[0].id}/sources/?apiKey=${apiKey}`)
+    .then(res => res.json())
+    .then(data => {
+      if(data.length === 0) {
+        const h2 = document.createElement('h2');
+        h2.textContent = 'No streaming services available.';
+        titles.append(h2);
+      }
+      const dataUniq = [...new Map(data.map(v => [v.name, v])).values()]
+      dataUniq.forEach(service => {
+        const article = document.createElement('article');
+        const header = document.createElement('header');
+        const titleHeader = document.createElement('h2');
+        const headerLink = document.createElement('a');
+        headerLink.textContent = service.name;
+        headerLink.href = service.web_url;
+        titles.append(article);
+        article.append(header);
+        header.append(titleHeader);
+        titleHeader.append(headerLink);      
+      })
+    })
+    .catch(err => console.log(`err: ${err}`))
+  }
 }
